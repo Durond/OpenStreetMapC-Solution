@@ -11,7 +11,8 @@ docker compose up -d --build
 
 Поднимаются PostGIS (**5432**), API (**5000** → контейнер **8080**), pgAdmin (**8080**), один раз отрабатывает импортёр с настройками из compose. API тогда: `http://localhost:5000`, Swagger: `http://localhost:5000/swagger`.
 
-Импорт по умолчанию идёт через **Overpass API**: в базу попадают только точки POI внутри прямоугольника `IMPORT_BBOX` (отдельного файла «только Иркутск»). Отдельно качать сибирский `.osm.pbf` не нужно. Если нужен именно файл с Geofabrik: `OSM_IMPORT_SOURCE=pbf`, `OSM_PBF_URL`, и при необходимости снова `IMPORT_BBOX` при разборе.
+Импорт по умолчанию идёт через **Overpass API**
+
 
 
 
@@ -29,7 +30,23 @@ docker compose up -d --build
 - `public_transport` — остановки и т.п.:  
   `http://localhost:5000/api/Places/search?lat=52.28&lon=104.29&radiusMeters=3000&type=public_transport`
 
+
+
+ вывод в другом формате xml 
+'http://localhost:5000/api/places/search?lat=52.2869&lon=104.3050&radiusMeters=500&format=xml'
 Локально без Docker подставьте `http://localhost:5179` вместо `http://localhost:5000`.
+
+curl "http://localhost:5000/api/places/search?lat=52.2869&lon=104.3050&radiusMeters=500&format=pbf" --output output.pbf
+
+# Посмотреть размер файла (будет значительно меньше JSON/XML аналога)
+ls -lh output.pbf
+
+# Проверить что это бинарный файл (не текст)
+file output.pbf
+
+
+
+
 
 Остановка: `docker compose down` (данные БД в именованном volume сохранятся).
 
