@@ -7,7 +7,7 @@
 docker compose up -d --build
 ```
 
-**С нуля:** после клонирования репозитория нужна по сути одна команда выше. Соберутся образы API и импортёра, поднимется PostGIS, API накатит миграции, затем автоматически стартует контейнер импортёра (он завязан на API), который через Overpass подгрузит точки в bbox из compose. Отдельно запускать импортёр или миграции не нужно — только подождать (первый раз дольше: сборка, старт БД, ответ Overpass может занять несколько минут). Убедиться, что импорт закончился: `docker compose logs importer` — в конце строка `Done. Imported/upserted: …`. Проверка API: `http://localhost:5000/api/Places/search?lat=52.28&lon=104.29&radiusMeters=3000`. Если Overpass временно недоступен, повторите `docker compose up importer` позже (или `docker compose run --rm importer`).
+**С нуля:** после клонирования репозитория нужна по сути одна команда выше. Соберутся образы API и импортёра, поднимется PostGIS, применятся миграции,  далеее через API произведется запрос который через Overpass подгрузит точки в bbox из compose.(первый раз дольше: сборка, старт БД, ответ Overpass может занять несколько минут). Убедиться, что импорт закончился: `docker compose logs importer` — в конце строка `Done. Imported/upserted: …`. Проверка API: `http://localhost:5000/api/Places/search?lat=52.28&lon=104.29&radiusMeters=3000`. Если Overpass временно недоступен, повторите `docker compose up importer` позже (или `docker compose run --rm importer`).
 
 Поднимаются PostGIS (**5432**), API (**5000** → контейнер **8080**), pgAdmin (**8080**), один раз отрабатывает импортёр с настройками из compose. API тогда: `http://localhost:5000`, Swagger: `http://localhost:5000/swagger`.
 
