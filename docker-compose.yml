@@ -1,0 +1,65 @@
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: osm-postgis
+    environment:
+      POSTGRES_DB: osm
+      POSTGRES_USER: osm
+      POSTGRES_PASSWORD: osm
+    ports:
+      - "5432:5432"
+    volumes:
+      - osm_pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./OsbApi
+      dockerfile: Dockerfile
+    container_name: osm-api
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ConnectionStrings__Default: Host=db;Port=5432;Database=osm;Username=osm;Password=osm
+      ASPNETCORE_ENVIRONMENT: Development
+    ports:
+      - "5000:8080"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+  importer:
+    build:
+      context: ./OsmImporter
+      dockerfile: Dockerfile
+    container_name: osm-importer
+    environment:
+      ConnectionStrings__Default: Host=db;Port=5432;Database=osm;Username=osm;Password=osm
+      # overpass — только узлы POI в прямоугольнике (без многогигабайтного PBF с Geofabrik).
+      OSM_IMPORT_SOURCE: overpass
+      OVERPASS_URL: https://overpass-api.de/api/interpreter
+      OSM_PBF_PATH: /data/irkutsk-overpass.osm
+      # bbox: minLat,minLon,maxLat,maxLon (Иркутск + окрестности)
+      IMPORT_BBOX: 52.10,104.00,52.45,104.55
+      IMPORT_MAX: 200000
+    volumes:
+      - osm_import_data:/data
+    depends_on:
+      - db
+      - api
+    restart: "no"
+
+  pgadmin:
+    image: dpage/pgadmin4:8
+    container_name: osm-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    depends_on:
+      - db
+    restart: unless-stopped
+
+volumes:
+  osm_pgdata:
+  osm_import_data:
